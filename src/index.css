@@ -1,0 +1,109 @@
+/* 配色と下敷き。見た目の組み立ては App.css */
+
+:root {
+  color-scheme: light dark;
+
+  --bg: #fafaf9;
+  --surface: #ffffff;
+  --ink: #1c1917;
+  --ink-2: #44403c;
+  --ink-3: #6b6560;
+  --line: #e2e0de;
+  --line-2: #eeedec;
+  --accent: #1c1917;
+  --accent-ink: #fafaf9;
+  --focus: #1d4ed8;
+  --paid-bg: #ecfdf5;
+  --paid-ink: #065f46;
+  --due-bg: #fef6e7;
+  --due-ink: #8a4b06;
+  --radius: 8px;
+  --chart-bar: #1c1917;
+  --danger: #9a3412;
+
+  --sans: -apple-system, BlinkMacSystemFont, 'Hiragino Kaku Gothic ProN',
+    'Noto Sans JP', sans-serif;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #17161a;
+    --surface: #201f24;
+    --ink: #f5f5f4;
+    --ink-2: #d6d3d1;
+    --ink-3: #a8a29e;
+    --line: #35323a;
+    --line-2: #28262d;
+    --accent: #f5f5f4;
+    --accent-ink: #1c1917;
+    --focus: #7aa7ff;
+    --paid-bg: rgba(16, 185, 129, 0.16);
+    --paid-ink: #6ee7b7;
+    --due-bg: rgba(245, 158, 11, 0.16);
+    --due-ink: #fcd34d;
+    --chart-bar: #d6d3d1;
+    --danger: #fca5a5;
+  }
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--sans);
+  font-size: 16px;
+  line-height: 1.6;
+  font-variant-numeric: tabular-nums;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3,
+p,
+dl,
+dd {
+  margin: 0;
+}
+
+button,
+input {
+  font: inherit;
+  color: inherit;
+}
+
+button {
+  /* タップの待ち時間と押したときの灰色を消す */
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* キーボード操作のときだけ枠を出す */
+:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+  border-radius: 3px;
+}
+
+/* 画面には出さず読み上げには残す */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  clip-path: inset(50%);
+  border: 0;
+}

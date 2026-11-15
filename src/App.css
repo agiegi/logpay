@@ -1,0 +1,708 @@
+main {
+  max-width: 460px;
+  margin: 0 auto;
+  /* ノッチや丸い角を避ける。index.html の viewport-fit=cover と対で効く */
+  padding: calc(26px + env(safe-area-inset-top)) calc(20px + env(safe-area-inset-right))
+    calc(96px + env(safe-area-inset-bottom)) calc(20px + env(safe-area-inset-left));
+}
+
+.head-actions {
+  display: flex;
+  flex: none;
+  gap: 16px;
+}
+
+/* 見出しと設定ボタン */
+
+.app-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--line);
+}
+
+h1 {
+  font-size: 1.15rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.link-btn {
+  background: none;
+  border: none;
+  padding: 6px 2px;
+  color: var(--ink-2);
+  font-size: 0.85rem;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+.link-btn:hover {
+  color: var(--ink);
+}
+
+/* 設定 */
+
+.settings {
+  padding: 18px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.settings .row + .row {
+  margin-top: 14px;
+}
+
+label {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 96px;
+  color: var(--ink-2);
+  font-size: 0.75rem;
+}
+
+input {
+  width: 100%;
+  padding: 10px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  /* 16px を下回ると iOS が勝手に拡大する */
+  font-size: 16px;
+}
+
+.check {
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+  margin-top: 16px;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+
+.check input {
+  width: auto;
+  min-width: 18px;
+  min-height: 18px;
+  margin: 0;
+  accent-color: var(--accent);
+}
+
+.note {
+  flex: 1 1 100%;
+  color: var(--ink-3);
+  font-size: 0.72rem;
+}
+
+/* 次回支給予定 */
+
+.summary {
+  padding: 26px 0 22px;
+  border-bottom: 1px solid var(--line);
+}
+
+.summary-label {
+  color: var(--ink-2);
+  font-size: 0.8rem;
+  font-weight: normal;
+}
+
+.amount {
+  margin: 2px 0 4px;
+  font-size: 2.5rem;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1.15;
+}
+
+.period {
+  color: var(--ink-3);
+  font-size: 0.75rem;
+}
+
+.stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 20px;
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px dashed var(--line);
+}
+
+.stats > div {
+  flex: 1;
+  min-width: 120px;
+}
+
+.stats dt {
+  color: var(--ink-3);
+  font-size: 0.72rem;
+}
+
+.stats dd {
+  font-size: 1.05rem;
+  font-weight: 600;
+}
+
+/* 記録の追加 */
+
+form {
+  padding: 22px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+label.date-field {
+  flex: 1.5 1 130px;
+}
+
+.primary-btn {
+  width: 100%;
+  margin-top: 14px;
+  padding: 11px;
+  background: var(--accent);
+  color: var(--accent-ink);
+  border: none;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.primary-btn:hover {
+  opacity: 0.88;
+}
+
+.error {
+  margin-top: 10px;
+  color: var(--due-ink);
+  font-size: 0.78rem;
+}
+
+/* 履歴 */
+
+.history {
+  padding-top: 24px;
+}
+
+.history > h2 {
+  margin-bottom: 14px;
+  color: var(--ink-2);
+  font-size: 0.8rem;
+  font-weight: normal;
+}
+
+.empty {
+  color: var(--ink-3);
+  font-size: 0.85rem;
+}
+
+.group + .group {
+  margin-top: 22px;
+}
+
+.group-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 8px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--line);
+}
+
+.group-head h3 {
+  flex: 1;
+  font-size: 0.88rem;
+  font-weight: 600;
+}
+
+.group-sum {
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.group-period {
+  flex: 1 1 100%;
+  color: var(--ink-3);
+  font-size: 0.72rem;
+}
+
+.badge {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 1px 7px;
+  border-radius: 999px;
+  font-size: 0.68rem;
+  font-weight: 600;
+  vertical-align: 1px;
+}
+
+.badge.paid {
+  background: var(--paid-bg);
+  color: var(--paid-ink);
+}
+
+.badge.due {
+  background: var(--due-bg);
+  color: var(--due-ink);
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.88rem;
+}
+
+th,
+td {
+  padding: 9px 0;
+  border-bottom: 1px solid var(--line-2);
+  text-align: left;
+  font-weight: normal;
+}
+
+td.detail {
+  color: var(--ink-3);
+  font-size: 0.8rem;
+}
+
+td.num {
+  text-align: right;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+td.action {
+  width: 40px;
+  text-align: right;
+}
+
+.del-btn {
+  min-width: 36px;
+  min-height: 36px;
+  background: none;
+  border: none;
+  color: var(--ink-3);
+  font-size: 1.1rem;
+  cursor: pointer;
+}
+
+.del-btn:hover {
+  color: var(--ink);
+}
+
+footer {
+  margin-top: 44px;
+  color: var(--ink-3);
+  font-size: 0.75rem;
+}
+
+/* 削除の取り消し */
+
+.undo {
+  position: fixed;
+  bottom: calc(18px + env(safe-area-inset-bottom));
+  left: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  width: calc(100% - 36px);
+  max-width: 424px;
+  padding: 11px 14px;
+  background: var(--ink);
+  color: var(--bg);
+  border-radius: var(--radius);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.22);
+  font-size: 0.8rem;
+  transform: translateX(-50%);
+  animation: undo-in 0.16s ease-out;
+}
+
+.undo button {
+  flex: none;
+  padding: 4px 2px;
+  background: none;
+  border: none;
+  color: inherit;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+@keyframes undo-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 8px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .undo {
+    animation: none;
+  }
+}
+
+
+/* このアプリについて */
+
+.about {
+  width: min(560px, calc(100% - 32px));
+  max-height: calc(100dvh - 48px);
+  padding: 14px 22px 24px;
+  background: var(--surface);
+  color: var(--ink);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.3);
+}
+
+.about::backdrop {
+  background: rgba(10, 12, 16, 0.5);
+}
+
+.about-top {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.about-close {
+  min-width: 40px;
+  min-height: 40px;
+  background: none;
+  border: none;
+  color: var(--ink-3);
+  font-size: 1.3rem;
+  cursor: pointer;
+}
+
+.about-head {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 6px;
+}
+
+.about-mon {
+  flex: none;
+  width: 60px;
+  height: 60px;
+}
+
+/* 紋は黒 + アルファ。暗い背景では沈むので白へ反転する。
+   brightness(0) で一度真っ黒にしてから invert(1) で白にする。
+   アルファはそのまま残るので形は変わらない */
+@media (prefers-color-scheme: dark) {
+  .about-mon {
+    filter: brightness(0) invert(1);
+  }
+}
+
+.about h2 {
+  font-size: 1.15rem;
+  letter-spacing: 0.02em;
+}
+
+.about h3 {
+  margin: 20px 0 5px;
+  color: var(--ink-2);
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.about p {
+  max-width: 54ch;
+  font-size: 0.85rem;
+}
+
+.about-head p {
+  color: var(--ink-2);
+}
+
+.license {
+  margin-top: 8px;
+}
+
+.license summary {
+  color: var(--ink-2);
+  font-size: 0.78rem;
+  cursor: pointer;
+}
+
+.license pre {
+  max-height: 220px;
+  margin: 8px 0 0;
+  padding: 12px;
+  overflow: auto;
+  background: var(--line-2);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  color: var(--ink-2);
+  font-size: 0.68rem;
+  line-height: 1.5;
+  white-space: pre-wrap;
+}
+
+.about-foot {
+  margin-top: 22px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+  color: var(--ink-3);
+  font-size: 0.72rem;
+}
+
+/* 端末ごとの調整 */
+
+/* 横に余裕がある画面では間を広げる */
+@media (min-width: 640px) {
+  main {
+    max-width: 520px;
+    padding-top: calc(40px + env(safe-area-inset-top));
+  }
+
+  .amount {
+    font-size: 2.8rem;
+  }
+}
+
+/* 横向きのスマホは縦が足りないので詰める */
+@media (orientation: landscape) and (max-height: 520px) {
+  main {
+    padding-top: calc(16px + env(safe-area-inset-top));
+  }
+
+  .summary {
+    padding: 16px 0 14px;
+  }
+
+  .amount {
+    font-size: 2rem;
+  }
+
+  form {
+    padding: 16px 0;
+  }
+}
+
+/* 細い端末では日付を1行に出し, 時間と時給を並べる */
+@media (max-width: 420px) {
+  label.date-field {
+    flex: 1 1 100%;
+  }
+}
+
+@media (max-width: 359px) {
+  label {
+    min-width: 88px;
+  }
+
+  .amount {
+    font-size: 2.1rem;
+  }
+}
+
+/* ホーム画面から開いたときは上の余白を少し足す */
+@media (display-mode: standalone) {
+  main {
+    padding-top: calc(34px + env(safe-area-inset-top));
+  }
+}
+
+
+/* 書き出しと読み込み */
+
+.backup {
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px dashed var(--line);
+}
+
+.backup h3 {
+  margin-bottom: 4px;
+  color: var(--ink-2);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.backup-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-top: 10px;
+}
+
+.form-note {
+  margin-top: 10px;
+}
+
+/* グラフ */
+
+.chart-section {
+  padding: 24px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.section-head h2 {
+  color: var(--ink-2);
+  font-size: 0.8rem;
+  font-weight: normal;
+}
+
+.toggle {
+  display: flex;
+  gap: 2px;
+  padding: 2px;
+  background: var(--line-2);
+  border-radius: 6px;
+}
+
+.toggle button {
+  padding: 4px 10px;
+  background: none;
+  border: none;
+  border-radius: 4px;
+  color: var(--ink-3);
+  font-size: 0.75rem;
+  cursor: pointer;
+}
+
+.toggle button[aria-pressed='true'] {
+  background: var(--surface);
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.chart-svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.chart-bar {
+  fill: var(--chart-bar);
+}
+
+.chart-grid {
+  stroke: var(--line);
+  stroke-width: 1;
+}
+
+.chart-tick,
+.chart-label {
+  fill: var(--ink-3);
+  font-size: 9px;
+}
+
+.chart-value {
+  fill: var(--ink);
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.chart-table {
+  margin-top: 10px;
+}
+
+.chart-table summary {
+  color: var(--ink-3);
+  font-size: 0.75rem;
+  cursor: pointer;
+}
+
+.chart-table table {
+  margin-top: 8px;
+}
+
+.chart-table th[scope='col'] {
+  color: var(--ink-3);
+  font-size: 0.72rem;
+}
+
+/* 記録を直す */
+
+.edit {
+  width: min(380px, calc(100% - 32px));
+  padding: 20px 22px 22px;
+  background: var(--surface);
+  color: var(--ink);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.3);
+}
+
+.edit::backdrop {
+  background: rgba(10, 12, 16, 0.5);
+}
+
+.edit h2 {
+  margin-bottom: 14px;
+  font-size: 1rem;
+}
+
+.edit > label {
+  margin-bottom: 12px;
+}
+
+.edit-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-top: 18px;
+}
+
+.edit-actions .primary-btn {
+  flex: 1;
+  margin-top: 0;
+  width: auto;
+}
+
+.danger-btn {
+  margin-left: auto;
+  padding: 6px 2px;
+  background: none;
+  border: none;
+  color: var(--danger);
+  font-size: 0.8rem;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+.edit-btn {
+  min-height: 36px;
+  padding: 0 4px;
+  background: none;
+  border: none;
+  color: var(--ink-3);
+  font-size: 0.78rem;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+.edit-btn:hover {
+  color: var(--ink);
+}
+
+td.action {
+  width: 44px;
+}
