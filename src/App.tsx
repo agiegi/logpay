@@ -3,7 +3,9 @@ import './App.css';
 import About from './About';
 import Chart from './Chart';
 import EditDialog from './EditDialog';
+import InstallPrompt from './InstallPrompt';
 import { exportStore, importStore } from './lib/backup';
+import { askPersist } from './lib/install';
 import {
   currentPeriod,
   daysBetween,
@@ -64,6 +66,7 @@ export default function App() {
   const undoTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const undoButton = useRef<HTMLButtonElement | null>(null);
   const filePicker = useRef<HTMLInputElement | null>(null);
+  const persistAsked = useRef(false);
 
   useEffect(() => {
     saveStore({ schemaVersion: 2, settings, records });
@@ -80,6 +83,14 @@ export default function App() {
   useEffect(() => {
     if (undoItem !== null) undoButton.current?.focus();
   }, [undoItem]);
+
+  // 記録ができたら, 容量不足での退避から外してもらう
+  useEffect(() => {
+    if (records.length > 0 && !persistAsked.current) {
+      persistAsked.current = true;
+      void askPersist();
+    }
+  }, [records.length]);
 
   const todayStr = formatDate(today());
 
@@ -425,6 +436,8 @@ export default function App() {
           <p className="error" role="alert">{error}</p>
         )}
       </form>
+
+      <InstallPrompt hasRecords={records.length > 0} />
 
       <section className="chart-section" aria-labelledby="chart-heading">
         <div className="section-head">

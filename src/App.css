@@ -706,3 +706,50 @@ footer {
 td.action {
   width: 44px;
 }
+
+/* ホーム画面への追加 */
+
+.install {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-top: 22px;
+  padding: 14px 14px 14px 16px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+
+.install-body {
+  flex: 1;
+}
+
+.install p {
+  font-size: 0.8rem;
+}
+
+.install p + p {
+  margin-top: 6px;
+}
+
+.install-how {
+  color: var(--ink-2);
+  font-weight: 600;
+}
+
+.install .primary-btn {
+  width: auto;
+  margin-top: 12px;
+  padding: 8px 16px;
+}
+
+.install-close {
+  flex: none;
+  min-width: 36px;
+  min-height: 36px;
+  background: none;
+  border: none;
+  color: var(--ink-3);
+  font-size: 1.1rem;
+  cursor: pointer;
+}
