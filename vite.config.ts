@@ -16,6 +16,10 @@ export default defineConfig({
     VitePWA({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.png', 'apple-touch-icon.png'],
+      workbox: {
+        // ogp.png はリンクカード用。アプリ側では使わないのでキャッシュに入れない
+        globIgnores: ['**/ogp.png'],
+      },
       manifest: {
         name: 'LogPay — バイトの給料記録',
         short_name: 'LogPay',
