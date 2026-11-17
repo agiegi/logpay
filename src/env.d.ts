@@ -2,6 +2,7 @@
 // About の表示と package.json が別々に古くなるのを防ぐため
 declare global {
   const __APP_VERSION__: string
+  const __BUILD_DATE__: string
 }
 
 export {}

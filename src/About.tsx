@@ -69,7 +69,9 @@ export default function About({ open, onClose }: Props) {
         <pre>{reactLicense}</pre>
       </details>
 
-      <p className="about-foot">LogPay {__APP_VERSION__} — OH-GY</p>
+      <p className="about-foot">
+        LogPay {__APP_VERSION__} · {__BUILD_DATE__} 版 — OH-GY
+      </p>
     </dialog>
   );
 }
