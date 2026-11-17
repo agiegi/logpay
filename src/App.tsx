@@ -4,6 +4,8 @@ import About from './About';
 import Chart from './Chart';
 import EditDialog from './EditDialog';
 import InstallPrompt from './InstallPrompt';
+import WorkplacePicker from './WorkplacePicker';
+import WorkplaceSettings from './WorkplaceSettings';
 import { exportStore, importStore } from './lib/backup';
 import { askPersist } from './lib/install';
 import {
@@ -17,17 +19,19 @@ import {
 } from './lib/period';
 import { monthlyTotals, weeklyTotals } from './lib/stats';
 import {
-  clampDay,
   clampWage,
+  displayName,
   loadStore,
   newId,
   saveStore,
   sortRecords,
-  type Settings,
   type ShiftRecord,
+  type Workplace,
 } from './lib/storage';
 
 type Group = {
+  key: string;
+  workplaceId: string;
   payday: string;
   periodStart: string;
   periodEnd: string;
@@ -35,30 +39,38 @@ type Group = {
   records: ShiftRecord[];
 };
 
+type Upcoming = {
+  id: string;
+  name: string;
+  payday: string;
+  periodStart: string;
+  periodEnd: string;
+  closingDay: number | null;
+  total: number;
+  daysLeft: number;
+};
+
 const initial = loadStore();
 const UNDO_MS = 5000;
 
 const yen = (value: number) => `¥${value.toLocaleString('ja-JP')}`;
 const slash = (date: string) => date.replace(/-/g, '/');
+const shortDate = (date: string) => `${Number(date.slice(5, 7))}/${Number(date.slice(8, 10))}`;
+const countdownOf = (days: number) =>
+  days === 0 ? '今日' : days === 1 ? '明日' : `あと${days}日`;
 
 export default function App() {
-  const [settings, setSettings] = useState<Settings>(initial.settings);
+  const [workplaces, setWorkplaces] = useState<Workplace[]>(initial.workplaces);
   const [records, setRecords] = useState<ShiftRecord[]>(initial.records);
+  const [pickedRaw, setPicked] = useState(initial.lastWorkplaceId);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isAboutOpen, setIsAboutOpen] = useState(false);
   const [editing, setEditing] = useState<ShiftRecord | null>(null);
   const [span, setSpan] = useState<'month' | 'week'>('month');
 
-  // 設定欄は入力途中の文字列を持ち, 妥当な値のときだけ設定に反映する
-  const [paydayText, setPaydayText] = useState(String(initial.settings.payday));
-  const [closingText, setClosingText] = useState(
-    initial.settings.closingDay === null ? '' : String(initial.settings.closingDay)
-  );
-  const [wageText, setWageText] = useState(String(initial.settings.defaultWage));
-
   const [workDate, setWorkDate] = useState(() => formatDate(new Date()));
   const [hours, setHours] = useState('4');
-  const [wage, setWage] = useState(String(initial.settings.defaultWage));
+  const [wage, setWage] = useState(String(initial.workplaces[0].defaultWage));
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
 
@@ -68,9 +80,13 @@ export default function App() {
   const filePicker = useRef<HTMLInputElement | null>(null);
   const persistAsked = useRef(false);
 
+  // 消された勤務先を指したままにならないようにする
+  const picked = workplaces.some((w) => w.id === pickedRaw) ? pickedRaw : workplaces[0].id;
+  const many = workplaces.length > 1;
+
   useEffect(() => {
-    saveStore({ schemaVersion: 2, settings, records });
-  }, [settings, records]);
+    saveStore({ schemaVersion: 3, workplaces, records, lastWorkplaceId: picked });
+  }, [workplaces, records, picked]);
 
   useEffect(
     () => () => {
@@ -93,91 +109,105 @@ export default function App() {
   }, [records.length]);
 
   const todayStr = formatDate(today());
+  const wpById = useMemo(() => new Map(workplaces.map((w) => [w.id, w])), [workplaces]);
 
-  const period = useMemo(
-    () => currentPeriod(today(), settings.payday, settings.closingDay),
-    [settings.payday, settings.closingDay]
-  );
+  const nameOf = (id: string) => {
+    const i = workplaces.findIndex((w) => w.id === id);
+    return i < 0 ? '' : displayName(workplaces[i], i);
+  };
 
-  const daysLeft = daysBetween(today(), parseDate(period.payday));
-
-  // 支給日ごとにまとめる
+  // 勤務先と支給日の組でまとめる。同じ日に2つの支給日が重なることがある
   const groups = useMemo<Group[]>(() => {
-    const byPayday = new Map<string, ShiftRecord[]>();
-    for (const record of records) {
-      const key = paydayFor(record.date, settings.payday, settings.closingDay);
-      const list = byPayday.get(key);
-      if (list === undefined) byPayday.set(key, [record]);
-      else list.push(record);
-    }
+    const byKey = new Map<string, Group>();
 
-    return [...byPayday.entries()]
-      .sort((a, b) => b[0].localeCompare(a[0]))
-      .map(([payday, list]) => {
-        const p = periodOfPayday(payday, settings.payday, settings.closingDay);
-        return {
+    for (const record of records) {
+      const wp = wpById.get(record.workplaceId) ?? workplaces[0];
+      const payday = paydayFor(record.date, wp.payday, wp.closingDay);
+      const key = `${wp.id}:${payday}`;
+      const found = byKey.get(key);
+
+      if (found === undefined) {
+        const p = periodOfPayday(payday, wp.payday, wp.closingDay);
+        byKey.set(key, {
+          key,
+          workplaceId: wp.id,
           payday,
           periodStart: p.periodStart,
           periodEnd: p.periodEnd,
-          total: list.reduce((sum, r) => sum + r.dailyPay, 0),
-          records: list,
+          total: record.dailyPay,
+          records: [record],
+        });
+      } else {
+        found.total += record.dailyPay;
+        found.records.push(record);
+      }
+    }
+
+    return [...byKey.values()].sort(
+      (a, b) => b.payday.localeCompare(a.payday) || a.workplaceId.localeCompare(b.workplaceId)
+    );
+  }, [records, workplaces, wpById]);
+
+  // 勤務先ごとの次回支給日
+  const upcoming = useMemo<Upcoming[]>(() => {
+    const base = today();
+    return workplaces
+      .map((w, i) => {
+        const p = currentPeriod(base, w.payday, w.closingDay);
+        const group = groups.find((g) => g.workplaceId === w.id && g.payday === p.payday);
+        return {
+          id: w.id,
+          name: displayName(w, i),
+          payday: p.payday,
+          periodStart: p.periodStart,
+          periodEnd: p.periodEnd,
+          closingDay: w.closingDay,
+          total: group?.total ?? 0,
+          daysLeft: daysBetween(base, parseDate(p.payday)),
         };
-      });
-  }, [records, settings.payday, settings.closingDay]);
+      })
+      .sort((a, b) => a.payday.localeCompare(b.payday));
+  }, [workplaces, groups]);
 
-  const buckets = useMemo(
-    () =>
-      span === 'month'
-        ? monthlyTotals(records, today())
-        : weeklyTotals(records, today()),
-    [records, span]
-  );
-
-  // 支給日を過ぎた分だけを累計にする
+  const comingTotal = upcoming.reduce((sum, u) => sum + u.total, 0);
   const paidTotal = groups
     .filter((g) => g.payday < todayStr)
     .reduce((sum, g) => sum + g.total, 0);
-  const nextTotal = groups.find((g) => g.payday === period.payday)?.total ?? 0;
-  const laterTotal = groups
-    .filter((g) => g.payday > period.payday)
-    .reduce((sum, g) => sum + g.total, 0);
 
+  // 各勤務先の次回支給日より後の分
+  const laterTotal = useMemo(() => {
+    const next = new Map(upcoming.map((u) => [u.id, u.payday]));
+    return groups
+      .filter((g) => g.payday > (next.get(g.workplaceId) ?? todayStr))
+      .reduce((sum, g) => sum + g.total, 0);
+  }, [groups, upcoming, todayStr]);
+
+  const buckets = useMemo(
+    () =>
+      span === 'month' ? monthlyTotals(records, today()) : weeklyTotals(records, today()),
+    [records, span]
+  );
+
+  const pickedPlace = wpById.get(picked) ?? workplaces[0];
   const formPayday =
-    workDate === '' ? null : paydayFor(workDate, settings.payday, settings.closingDay);
+    workDate === ''
+      ? null
+      : paydayFor(workDate, pickedPlace.payday, pickedPlace.closingDay);
 
-  const isDayValid = (text: string) => {
-    const n = Number(text);
-    return text !== '' && Number.isInteger(n) && n >= 1 && n <= 31;
+  const handlePick = (id: string) => {
+    setPicked(id);
+    const wp = wpById.get(id);
+    if (wp !== undefined) setWage(String(wp.defaultWage));
   };
 
-  const handlePaydayChange = (text: string) => {
-    setPaydayText(text);
-    if (isDayValid(text)) setSettings((s) => ({ ...s, payday: Number(text) }));
-  };
-
-  const handleClosingChange = (text: string) => {
-    setClosingText(text);
-    if (isDayValid(text)) setSettings((s) => ({ ...s, closingDay: Number(text) }));
-  };
-
-  const handleClosingToggle = (on: boolean) => {
-    if (!on) {
-      setClosingText('');
-      setSettings((s) => ({ ...s, closingDay: null }));
-      return;
+  const handleWorkplacesChange = (next: Workplace[]) => {
+    // 選んでいる勤務先の基本時給が変わったら, 入力欄も合わせる
+    const before = workplaces.find((w) => w.id === picked);
+    const after = next.find((w) => w.id === picked);
+    if (before !== undefined && after !== undefined && before.defaultWage !== after.defaultWage) {
+      setWage(String(after.defaultWage));
     }
-    const day = clampDay(closingText, 31);
-    setClosingText(String(day));
-    setSettings((s) => ({ ...s, closingDay: day }));
-  };
-
-  const handleWageChange = (text: string) => {
-    setWageText(text);
-    const n = Number(text);
-    if (text !== '' && Number.isInteger(n) && n >= 1) {
-      setSettings((s) => ({ ...s, defaultWage: n }));
-      setWage(text);
-    }
+    setWorkplaces(next);
   };
 
   const handleAdd = (e: React.FormEvent) => {
@@ -191,6 +221,7 @@ export default function App() {
 
     const record: ShiftRecord = {
       id: newId(),
+      workplaceId: picked,
       date: workDate,
       hours: h,
       wage: w,
@@ -200,7 +231,7 @@ export default function App() {
 
     setError('');
     setRecords((prev) => sortRecords([record, ...prev]));
-    setWage(String(settings.defaultWage));
+    setWage(String(pickedPlace.defaultWage));
   };
 
   const handleSaveEdit = (next: ShiftRecord) => {
@@ -224,7 +255,7 @@ export default function App() {
   };
 
   const handleExport = () => {
-    exportStore({ schemaVersion: 2, settings, records });
+    exportStore({ schemaVersion: 3, workplaces, records, lastWorkplaceId: picked });
     setNotice(`${records.length}件を書き出しました。`);
   };
 
@@ -235,21 +266,18 @@ export default function App() {
         `${store.records.length}件の記録を読み込みます。今の${records.length}件は置き換わります。`
       );
       if (!ok) return;
-      setSettings(store.settings);
+      setWorkplaces(store.workplaces);
       setRecords(store.records);
-      setPaydayText(String(store.settings.payday));
-      setClosingText(
-        store.settings.closingDay === null ? '' : String(store.settings.closingDay)
-      );
-      setWageText(String(store.settings.defaultWage));
+      setPicked(store.lastWorkplaceId);
+      setWage(String(store.workplaces[0].defaultWage));
       setNotice(`${store.records.length}件を読み込みました。`);
     } catch (e) {
       setNotice(e instanceof Error ? e.message : '読み込めませんでした。');
     }
   };
 
-  const countdown =
-    daysLeft === 0 ? '今日' : daysLeft === 1 ? '明日' : `あと${daysLeft}日`;
+  const single = upcoming[0];
+  const rows = upcoming.filter((u) => u.total > 0);
 
   return (
     <main>
@@ -275,62 +303,11 @@ export default function App() {
         <section id="settings" className="settings" aria-labelledby="settings-heading">
           <h2 id="settings-heading" className="sr-only">設定</h2>
 
-          <div className="row">
-            <label>
-              給料日（日）
-              <input
-                type="number"
-                inputMode="numeric"
-                min={1}
-                max={31}
-                value={paydayText}
-                onChange={(e) => handlePaydayChange(e.target.value)}
-                onBlur={() => setPaydayText(String(settings.payday))}
-              />
-            </label>
-            <label>
-              基本時給（円）
-              <input
-                type="number"
-                inputMode="numeric"
-                min={1}
-                step={10}
-                value={wageText}
-                onChange={(e) => handleWageChange(e.target.value)}
-                onBlur={() => setWageText(String(settings.defaultWage))}
-              />
-            </label>
-          </div>
-
-          <label className="check">
-            <input
-              type="checkbox"
-              checked={settings.closingDay !== null}
-              onChange={(e) => handleClosingToggle(e.target.checked)}
-            />
-            締め日がある
-          </label>
-
-          {settings.closingDay !== null && (
-            <div className="row">
-              <label>
-                締め日（日）
-                <input
-                  type="number"
-                  inputMode="numeric"
-                  min={1}
-                  max={31}
-                  aria-describedby="closing-note"
-                  value={closingText}
-                  onChange={(e) => handleClosingChange(e.target.value)}
-                  onBlur={() => setClosingText(String(settings.closingDay ?? 31))}
-                />
-              </label>
-              <p id="closing-note" className="note">
-                31 は末日として扱います。締め日を外すと, 前回の給料日の翌日から次の給料日までが対象になります。
-              </p>
-            </div>
-          )}
+          <WorkplaceSettings
+            workplaces={workplaces}
+            records={records}
+            onChange={handleWorkplacesChange}
+          />
 
           <div className="backup">
             <h3>記録の持ち出し</h3>
@@ -360,22 +337,44 @@ export default function App() {
                 e.target.value = '';
               }}
             />
-            {notice !== '' && (
-              <p className="note" role="status">{notice}</p>
-            )}
+            {notice !== '' && <p className="note" role="status">{notice}</p>}
           </div>
         </section>
       )}
 
       <section className="summary" aria-labelledby="summary-heading">
-        <h2 id="summary-heading" className="summary-label">
-          次回支給予定（{slash(period.payday)}・{countdown}）
-        </h2>
-        <p className="amount" aria-live="polite">{yen(nextTotal)}</p>
-        <p className="period">
-          対象 {slash(period.periodStart)} – {slash(period.periodEnd)}
-          {settings.closingDay === null ? '（締め日なし）' : ''}
-        </p>
+        {many ? (
+          <>
+            <h2 id="summary-heading" className="summary-label">これから入る分</h2>
+            <p className="amount" aria-live="polite">{yen(comingTotal)}</p>
+            {rows.length === 0 ? (
+              <p className="period">まだ記録がありません。</p>
+            ) : (
+              <ul className="upcoming">
+                {rows.map((u) => (
+                  <li key={u.id}>
+                    <span className="up-date">{shortDate(u.payday)}</span>
+                    <span className="up-name">{u.name}</span>
+                    <span className="up-amount">{yen(u.total)}</span>
+                    <span className="up-days">{countdownOf(u.daysLeft)}</span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </>
+        ) : (
+          <>
+            <h2 id="summary-heading" className="summary-label">
+              次回支給予定（{slash(single.payday)}・{countdownOf(single.daysLeft)}）
+            </h2>
+            <p className="amount" aria-live="polite">{yen(comingTotal)}</p>
+            <p className="period">
+              対象 {slash(single.periodStart)} – {slash(single.periodEnd)}
+              {single.closingDay === null ? '（締め日なし）' : ''}
+            </p>
+          </>
+        )}
+
         <dl className="stats">
           <div>
             <dt>支給済みの累計</dt>
@@ -392,6 +391,9 @@ export default function App() {
 
       <form onSubmit={handleAdd} aria-labelledby="form-heading">
         <h2 id="form-heading" className="sr-only">勤務を記録する</h2>
+
+        <WorkplacePicker workplaces={workplaces} value={picked} onChange={handlePick} />
+
         <div className="row">
           <label className="date-field">
             日付
@@ -426,15 +428,12 @@ export default function App() {
             />
           </label>
         </div>
+
         {formPayday !== null && (
-          <p className="note form-note">
-            この分は {slash(formPayday)} に支給される分です。
-          </p>
+          <p className="note form-note">この分は {slash(formPayday)} に支給される分です。</p>
         )}
         <button type="submit" className="primary-btn">記録を追加</button>
-        {error !== '' && (
-          <p className="error" role="alert">{error}</p>
-        )}
+        {error !== '' && <p className="error" role="alert">{error}</p>}
       </form>
 
       <InstallPrompt hasRecords={records.length > 0} />
@@ -471,9 +470,10 @@ export default function App() {
           groups.map((group) => {
             const isPaid = group.payday < todayStr;
             return (
-              <article className="group" key={group.payday}>
+              <article className="group" key={group.key}>
                 <header className="group-head">
                   <h3>
+                    {many && <span className="group-name">{nameOf(group.workplaceId)}</span>}
                     {slash(group.payday)} 支給
                     <span className={isPaid ? 'badge paid' : 'badge due'}>
                       {isPaid ? '支給済み' : group.payday === todayStr ? '本日' : '予定'}
@@ -493,7 +493,9 @@ export default function App() {
                     {group.records.map((r) => (
                       <tr key={r.id}>
                         <th scope="row">{slash(r.date)}</th>
-                        <td className="detail">{r.hours}h × {r.wage.toLocaleString('ja-JP')}円</td>
+                        <td className="detail">
+                          {r.hours}h × {r.wage.toLocaleString('ja-JP')}円
+                        </td>
                         <td className="num">{yen(r.dailyPay)}</td>
                         <td className="action">
                           <button
@@ -522,7 +524,7 @@ export default function App() {
         <EditDialog
           key={editing.id}
           record={editing}
-          settings={settings}
+          workplaces={workplaces}
           onSave={handleSaveEdit}
           onDelete={handleDelete}
           onClose={() => setEditing(null)}

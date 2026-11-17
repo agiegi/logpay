@@ -104,6 +104,88 @@ input {
   font-size: 0.72rem;
 }
 
+/* 勤務先 */
+
+.workplaces > h3 {
+  margin-bottom: 10px;
+  color: var(--ink-2);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.workplace + .workplace {
+  margin-top: 18px;
+  padding-top: 18px;
+  border-top: 1px dashed var(--line);
+}
+
+.workplace-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.workplace-no {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  background: var(--line-2);
+  border-radius: 50%;
+  color: var(--ink-3);
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+
+.workplace-head .note {
+  flex: none;
+}
+
+.workplace label {
+  margin-bottom: 12px;
+}
+
+.workplace .row label {
+  margin-bottom: 0;
+}
+
+.workplaces > .link-btn {
+  margin-top: 16px;
+}
+
+/* 勤務先の切り替え */
+
+.picker {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 14px;
+}
+
+.picker button {
+  flex: 1;
+  min-height: 38px;
+  padding: 6px 8px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  color: var(--ink-3);
+  font-size: 0.8rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.picker button[aria-pressed='true'] {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-ink);
+  font-weight: 600;
+}
+
 /* 次回支給予定 */
 
 .summary {
@@ -128,6 +210,49 @@ input {
 .period {
   color: var(--ink-3);
   font-size: 0.75rem;
+}
+
+.upcoming {
+  margin: 10px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.upcoming li {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 7px 0;
+  border-top: 1px solid var(--line-2);
+  font-size: 0.82rem;
+}
+
+.up-date {
+  flex: none;
+  width: 44px;
+  color: var(--ink-2);
+}
+
+.up-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--ink-2);
+}
+
+.up-amount {
+  flex: none;
+  font-weight: 600;
+}
+
+.up-days {
+  flex: none;
+  width: 56px;
+  color: var(--ink-3);
+  font-size: 0.72rem;
+  text-align: right;
 }
 
 .stats {
@@ -188,6 +313,10 @@ label.date-field {
   font-size: 0.78rem;
 }
 
+.form-note {
+  margin-top: 10px;
+}
+
 /* 履歴 */
 
 .history {
@@ -223,6 +352,18 @@ label.date-field {
   flex: 1;
   font-size: 0.88rem;
   font-weight: 600;
+}
+
+.group-name {
+  display: inline-block;
+  margin-right: 8px;
+  padding: 1px 7px;
+  background: var(--line-2);
+  border-radius: 4px;
+  color: var(--ink-2);
+  font-size: 0.72rem;
+  font-weight: 600;
+  vertical-align: 1px;
 }
 
 .group-sum {
@@ -282,21 +423,23 @@ td.num {
 }
 
 td.action {
-  width: 40px;
+  width: 44px;
   text-align: right;
 }
 
-.del-btn {
-  min-width: 36px;
+.edit-btn {
   min-height: 36px;
+  padding: 0 4px;
   background: none;
   border: none;
   color: var(--ink-3);
-  font-size: 1.1rem;
+  font-size: 0.78rem;
+  text-decoration: underline;
+  text-underline-offset: 3px;
   cursor: pointer;
 }
 
-.del-btn:hover {
+.edit-btn:hover {
   color: var(--ink);
 }
 
@@ -354,172 +497,6 @@ footer {
   }
 }
 
-
-/* このアプリについて */
-
-.about {
-  width: min(560px, calc(100% - 32px));
-  max-height: calc(100dvh - 48px);
-  padding: 14px 22px 24px;
-  background: var(--surface);
-  color: var(--ink);
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.3);
-}
-
-.about::backdrop {
-  background: rgba(10, 12, 16, 0.5);
-}
-
-.about-top {
-  display: flex;
-  justify-content: flex-end;
-}
-
-.about-close {
-  min-width: 40px;
-  min-height: 40px;
-  background: none;
-  border: none;
-  color: var(--ink-3);
-  font-size: 1.3rem;
-  cursor: pointer;
-}
-
-.about-head {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  margin-bottom: 6px;
-}
-
-.about-mon {
-  flex: none;
-  width: 60px;
-  height: 60px;
-}
-
-/* 紋は黒 + アルファ。暗い背景では沈むので白へ反転する。
-   brightness(0) で一度真っ黒にしてから invert(1) で白にする。
-   アルファはそのまま残るので形は変わらない */
-@media (prefers-color-scheme: dark) {
-  .about-mon {
-    filter: brightness(0) invert(1);
-  }
-}
-
-.about h2 {
-  font-size: 1.15rem;
-  letter-spacing: 0.02em;
-}
-
-.about h3 {
-  margin: 20px 0 5px;
-  color: var(--ink-2);
-  font-size: 0.8rem;
-  font-weight: 700;
-}
-
-.about p {
-  max-width: 54ch;
-  font-size: 0.85rem;
-}
-
-.about-head p {
-  color: var(--ink-2);
-}
-
-.license {
-  margin-top: 8px;
-}
-
-.license summary {
-  color: var(--ink-2);
-  font-size: 0.78rem;
-  cursor: pointer;
-}
-
-.license pre {
-  max-height: 220px;
-  margin: 8px 0 0;
-  padding: 12px;
-  overflow: auto;
-  background: var(--line-2);
-  border: 1px solid var(--line);
-  border-radius: 6px;
-  color: var(--ink-2);
-  font-size: 0.68rem;
-  line-height: 1.5;
-  white-space: pre-wrap;
-}
-
-.about-foot {
-  margin-top: 22px;
-  padding-top: 12px;
-  border-top: 1px solid var(--line);
-  color: var(--ink-3);
-  font-size: 0.72rem;
-}
-
-/* 端末ごとの調整 */
-
-/* 横に余裕がある画面では間を広げる */
-@media (min-width: 640px) {
-  main {
-    max-width: 520px;
-    padding-top: calc(40px + env(safe-area-inset-top));
-  }
-
-  .amount {
-    font-size: 2.8rem;
-  }
-}
-
-/* 横向きのスマホは縦が足りないので詰める */
-@media (orientation: landscape) and (max-height: 520px) {
-  main {
-    padding-top: calc(16px + env(safe-area-inset-top));
-  }
-
-  .summary {
-    padding: 16px 0 14px;
-  }
-
-  .amount {
-    font-size: 2rem;
-  }
-
-  form {
-    padding: 16px 0;
-  }
-}
-
-/* 細い端末では日付を1行に出し, 時間と時給を並べる */
-@media (max-width: 420px) {
-  label.date-field {
-    flex: 1 1 100%;
-  }
-}
-
-@media (max-width: 359px) {
-  label {
-    min-width: 88px;
-  }
-
-  .amount {
-    font-size: 2.1rem;
-  }
-}
-
-/* ホーム画面から開いたときは上の余白を少し足す */
-@media (display-mode: standalone) {
-  main {
-    padding-top: calc(34px + env(safe-area-inset-top));
-  }
-}
-
-
 /* 書き出しと読み込み */
 
 .backup {
@@ -539,10 +516,6 @@ footer {
   display: flex;
   flex-wrap: wrap;
   gap: 16px;
-  margin-top: 10px;
-}
-
-.form-note {
   margin-top: 10px;
 }
 
@@ -687,24 +660,111 @@ footer {
   cursor: pointer;
 }
 
-.edit-btn {
-  min-height: 36px;
-  padding: 0 4px;
+/* このアプリについて */
+
+.about {
+  width: min(560px, calc(100% - 32px));
+  max-height: calc(100dvh - 48px);
+  padding: 14px 22px 24px;
+  background: var(--surface);
+  color: var(--ink);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.3);
+}
+
+.about::backdrop {
+  background: rgba(10, 12, 16, 0.5);
+}
+
+.about-top {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.about-close {
+  min-width: 40px;
+  min-height: 40px;
   background: none;
   border: none;
   color: var(--ink-3);
-  font-size: 0.78rem;
-  text-decoration: underline;
-  text-underline-offset: 3px;
+  font-size: 1.3rem;
   cursor: pointer;
 }
 
-.edit-btn:hover {
-  color: var(--ink);
+.about-head {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 6px;
 }
 
-td.action {
-  width: 44px;
+.about-mon {
+  flex: none;
+  width: 60px;
+  height: 60px;
+}
+
+/* 紋は黒 + アルファ。暗い背景では沈むので白へ反転する。
+   brightness(0) で一度真っ黒にしてから invert(1) で白にする。
+   アルファはそのまま残るので形は変わらない */
+@media (prefers-color-scheme: dark) {
+  .about-mon {
+    filter: brightness(0) invert(1);
+  }
+}
+
+.about h2 {
+  font-size: 1.15rem;
+  letter-spacing: 0.02em;
+}
+
+.about h3 {
+  margin: 20px 0 5px;
+  color: var(--ink-2);
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.about p {
+  max-width: 54ch;
+  font-size: 0.85rem;
+}
+
+.about-head p {
+  color: var(--ink-2);
+}
+
+.license {
+  margin-top: 8px;
+}
+
+.license summary {
+  color: var(--ink-2);
+  font-size: 0.78rem;
+  cursor: pointer;
+}
+
+.license pre {
+  max-height: 220px;
+  margin: 8px 0 0;
+  padding: 12px;
+  overflow: auto;
+  background: var(--line-2);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  color: var(--ink-2);
+  font-size: 0.68rem;
+  line-height: 1.5;
+  white-space: pre-wrap;
+}
+
+.about-foot {
+  margin-top: 22px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+  color: var(--ink-3);
+  font-size: 0.72rem;
 }
 
 /* ホーム画面への追加 */
@@ -752,4 +812,61 @@ td.action {
   color: var(--ink-3);
   font-size: 1.1rem;
   cursor: pointer;
+}
+
+/* 端末ごとの調整 */
+
+/* 横に余裕がある画面では間を広げる */
+@media (min-width: 640px) {
+  main {
+    max-width: 520px;
+    padding-top: calc(40px + env(safe-area-inset-top));
+  }
+
+  .amount {
+    font-size: 2.8rem;
+  }
+}
+
+/* 横向きのスマホは縦が足りないので詰める */
+@media (orientation: landscape) and (max-height: 520px) {
+  main {
+    padding-top: calc(16px + env(safe-area-inset-top));
+  }
+
+  .summary {
+    padding: 16px 0 14px;
+  }
+
+  .amount {
+    font-size: 2rem;
+  }
+
+  form {
+    padding: 16px 0;
+  }
+}
+
+/* 細い端末では日付を1行に出し, 時間と時給を並べる */
+@media (max-width: 420px) {
+  label.date-field {
+    flex: 1 1 100%;
+  }
+}
+
+@media (max-width: 359px) {
+  label {
+    min-width: 88px;
+  }
+
+  .amount {
+    font-size: 2.1rem;
+  }
+}
+
+/* ホーム画面から開いたときは上の余白を少し足す */
+@media (display-mode: standalone) {
+  main {
+    padding-top: calc(34px + env(safe-area-inset-top));
+  }
 }
